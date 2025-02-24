@@ -3,6 +3,9 @@ import './App.css';
 import Home from './pages/Home/Home';
 import Signup from "./pages/SignUp/Signup";
 import Login from "./pages/Login/Login";
+import "primeflex/primeflex.css";
+
+
 
 const routes = (
   <Router>

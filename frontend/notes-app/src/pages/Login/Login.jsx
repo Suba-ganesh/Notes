@@ -2,9 +2,10 @@ import { Link } from "react-router-dom";
 import Navbar from "../../components/Navbar/Navbar";
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
-import PasswordInput from "../../components/Navbar/Password/PasswordInput";
 import { useState } from "react";
 import emailvalidation from "../../utilities/helper";
+import PasswordInput from "../../components/Password/PasswordInput";
+
 
 const Login = () => {
   const [email, setEmail] = useState("");
