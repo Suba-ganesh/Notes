@@ -1,50 +1,59 @@
 import { Link } from "react-router-dom";
-import Navbar from "../../components/Navbar/Navbar";
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
-
 import { useState } from "react";
-import emailvalidation from "../../utilities/helper";
+import { useNavigate } from "react-router-dom";
 import PasswordInput from "../../components/Password/PasswordInput";
+import axiosInstance from "../../utilities/axios";
+import Navbar from "../../components/Navbar/Navbar";
 
-const Login = () => {
+const Signup = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
+  const navigate = useNavigate(); // 
 
-
-  const handleLogin = (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
 
+    console.log("Submitting Data:", { fullName: name, email, password });
 
-    if (!name) {
-      setError("Please enter a valid Name.");
-      return;
+    try {
+        const response = await axiosInstance.post("/createaccount", {
+            fullName: name,
+            email: email,
+            password: password,
+        });
+
+        console.log("Response from backend:", response.data);
+
+        if (response.data && response.data.accessToken) {
+            localStorage.setItem("token", response.data.accessToken);
+            navigate("/login");
+        }
+    } catch (error) {
+        console.error("Signup Error:", error);
+        if (error.response) {
+            console.error("Backend Response:", error.response.data);
+            setError(error.response.data.message || "An unexpected error occurred.");
+        } else {
+            setError("An unexpected error occurred.");
+        }
     }
+};
 
-    if (!emailvalidation(email)) {
-      setError("Please enter a valid email.");
-      return;
-    }
-
-
-    if (!password) {
-      setError("Please enter a valid password.");
-      return;
-    }
-  };
 
   return (
     <div>
       <Navbar />
       <div className="flex align-items-center justify-content-center mt-8 w-100">
-        <form onSubmit={handleLogin} className="flex flex-column gap-2 p-4 border-round shadow-2 w-28rem">
+        <form onSubmit={handleSignup} className="flex flex-column gap-2 p-4 border-round shadow-2 w-28rem">
           <h2 className="text-center">Signup</h2>
 
-          <label htmlFor="email">Name:</label>
+          <label htmlFor="name">Name:</label>
           <InputText 
-            id="email" 
+            id="name" 
             placeholder="Enter your Name" 
             value={name} 
             onChange={(e) => setName(e.target.value)}
@@ -70,7 +79,7 @@ const Login = () => {
 
           {error && <p className="text-danger">{error}</p>}
 
-          <Button severity="info" label="Login" type="submit" className="w-full mt-3" />
+          <Button severity="info" label="Signup" type="submit" className="w-full mt-3" />
           
           <p className="text-center mt-2">
             Already Have an Account? <Link to="/login">Log In</Link>
@@ -81,4 +90,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Signup;

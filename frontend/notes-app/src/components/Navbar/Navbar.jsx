@@ -3,11 +3,12 @@ import ProfileInfo from "../../components/Cards/ProfileInfo";
 import Searchbox from "../../components/SearchBar/Searchbox";
 import { useState } from "react";
 
-const Navbar = () => {
+const Navbar = ({userInfo}) => {
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate;
 
   const logout = () => {
+    localStorage.clear()
     Navigate("/login");
   };
 
@@ -27,7 +28,7 @@ const Navbar = () => {
         handlesearch={handlesearch}
         clearsearch={clearsearch}
       />
-      <ProfileInfo logout={logout} />
+      <ProfileInfo userInfo = {userInfo} logout={logout} />
     </nav>
   );
 };

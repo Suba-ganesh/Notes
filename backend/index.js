@@ -19,12 +19,9 @@ app.use(
 );
 
 mongoose
-    .connect(config.connectionstring, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    .then(() => console.log("Connected to MongoDB"))
-    .catch((error) => console.error("MongoDB connection error:", error));
+.connect(config.connectionstring) // ✅ No need for useNewUrlParser or useUnifiedTopology
+.then(() => console.log("Connected to MongoDB"))
+.catch((error) => console.error("MongoDB connection error:", error));
 
 app.get("/", (req, res) => {
     res.json({ data: "hi" });
@@ -97,7 +94,7 @@ app.post("/login",async (req,res)=> {
             message:"Invalid Credentials"
         })
     }
-})
+});
 
 app.get("/get-user", authenticateToken,async (req,res)=> {
 
@@ -202,24 +199,33 @@ app.put("/edit-note/:noteId", authenticateToken, async (req, res) => {
     }
 });
 
-app.get("/get-all-notes/", authenticateToken, async (req, res) => {
-    const user = req.user
-
+app.get("/get-all-notes", authenticateToken, async (req, res) => {
     try {
-        const notes = await Note.find({user_Id:user._id}).sort({isPinned:-1});
+        // Get user from the authentication middleware
+        const user = req.user;
+        if (!user) {
+            return res.status(401).json({ error: true, message: "Unauthorized access" });
+        }
 
-        return res.json({
-        error:false,
-        notes,
-        message: "all notes are retrieved successfully"
+        // Fetch notes based on user ID
+        const notes = await Note.find({ user_Id: user._id }).sort({ isPinned: -1 });
+
+        // Return response
+        return res.status(200).json({
+            error: false,
+            notes,
+            message: "All notes retrieved successfully",
         });
     } catch (error) {
+        console.error("Error fetching notes:", error);
+
         return res.status(500).json({
-            error:true,
-            message:"internal Server error "
-        })
+            error: true,
+            message: "Internal Server Error",
+        });
     }
 });
+
 
 app.delete("/delete/:noteId", authenticateToken, async (req, res) => {
 

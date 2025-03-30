@@ -1,21 +1,44 @@
 import { useState } from "react";
 import TagInput from "../../components/Password/TagInput";
 import { MdClose } from "react-icons/md";
+import axiosInstance from "../../utilities/axios";
 
-const AddEditNotes = ({notedata, type, onclose}) => {
+const AddEditNotes = ({notedata, type, getAllNotes, onclose}) => {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [tags, setTags] = useState([]);
   const [error, setError] = useState(null);
 
-//   const addNewNote = async () = > {
 
-//   }
-
-//   const editNote = async () = > {
-    
-//   }
-
+  const addNewNote = async () => {
+    try {
+      // Ensure title, content, and tags are valid before making the request
+      if (!title || !content) {
+        setError("Title and content are required.");
+        return;
+      }
+  
+      const response = await axiosInstance.post("/add-note", {
+        title,
+        content,
+        tags: tags || [] // Ensure tags is always an array
+      });
+  
+      if (response.data && response.data.note) {
+        await getAllNotes(); // Wait for notes to be updated before closing
+        if (onClose) onClose(); // Check if onClose is defined before calling
+      }
+    } catch (error) {
+      console.error("Error adding note:", error);
+  
+      if (error.response?.data?.message) {
+        setError(error.response.data.message);
+      } else {
+        setError("An unexpected error occurred. Please try again.");
+      }
+    }
+  };
+  
   const handleAddNote = ()=> {
     if (!title) {
         setError("Please enter the title");

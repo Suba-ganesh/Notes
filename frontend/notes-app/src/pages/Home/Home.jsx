@@ -1,10 +1,12 @@
-import { useState } from "react"; // Importing useState hook
+import { useEffect, useState } from "react"; // Importing useState hook
+import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/Navbar/Navbar";
 import NoteCard from "../../components/NoteCard/NoteCard";
 import { MdAdd } from "react-icons/md";
 import "./home.css";
 import AddEditNotes from "./AddEditNotes";
 import Modal from "react-modal";
+import axiosInstance from "../../utilities/axios";
 
 const Home = () => {
   // useState hook for modal state
@@ -14,39 +16,84 @@ const Home = () => {
     data: null,
   });
 
-  // Simulate note data for rendering
-  const notes = [
-    {
-      title: "Meeting on 2nd FEB 2025",
-      date: "21-02-2025",
-      content: "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
-      tags: ["meeting"],
-      isPinned: true,
-    },
-    {
-      title: "Project Deadline",
-      date: "25-02-2025",
-      content:
-        "Ensure the final version of the project is ready for submission.",
-      tags: ["work"],
-      isPinned: false,
-    },
-    // Add more notes here if needed
-  ];
+  const [userInfo, setUserInfo] = useState(null);
+  const [allNotes, setAllNotes] = useState([]);
+  const [error, setError] = useState(""); // ✅ Fix: Declare error state
+  const navigate = useNavigate(); // ✅ Fix: Initialize navigate
+
+  const getUserInfo = async (setUserInfo, setError) => {
+    const navigate = useNavigate(); // Ensure this is inside the component
+  
+    try {
+      const response = await axiosInstance.get("/get-user");
+  
+      if (response?.data?.user) {
+        setUserInfo(response.data.user);
+      }
+    } catch (error) {
+      console.error("Error fetching user info:", error);
+  
+      if (error.response) {
+        console.log("Server Response:", error.response.data);
+        console.log("Status Code:", error.response.status);
+      } else if (error.request) {
+        console.log("No Response Received:", error.request);
+      } else {
+        console.log("Unexpected Error:", error.message);
+      }
+  
+      if (error.response?.status === 401) {
+        localStorage.clear();
+        navigate("/login");
+      } else {
+        setError && setError("Failed to fetch user info. Please try again.");
+      }
+    }
+  };
+
+  const getAllNotes = async () => {
+    try {
+        const response = await axiosInstance.get("/get-all-notes"); // Ensure the route matches backend
+
+        if (response?.data?.notes) {
+            setAllNotes(response.data.notes);
+        }
+    } catch (error) {
+        console.error("Error fetching notes:", error);
+
+        if (error.response) {
+            console.log("Server Response:", error.response.data);
+            console.log("Status Code:", error.response.status);
+        } else if (error.request) {
+            console.log("No Response Received:", error.request);
+        } else {
+            console.log("Unexpected Error:", error.message);
+        }
+    }
+};
+
+
+  useEffect(() => {
+    getAllNotes();
+    getUserInfo();
+  }, []);
 
   return (
     <div>
-      <Navbar />
+      <Navbar userInfo={userInfo} />
+
+      {error && <p className="error-message">{error}</p>} {/* ✅ Show error message */}
 
       <div className="flex justify-around mt-6 gap-3 flex-wrap">
-        {notes.map((note, index) => (
-          <div key={index} className="grid col-3">
+        {allNotes.map((item) => (
+          <div key={item._id} className="grid col-3">
             <NoteCard
-              title={note.title}
-              date={note.date}
-              content={note.content}
-              tags={note.tags} // ✅ Passed as an array
-              isPinned={note.isPinned}
+              key={item._id}
+              title={item.title}
+              date={item.createdOn ? new Date(item.createdOn).toLocaleDateString() : "Unknown Date"} // ✅ Fix: Convert date properly
+              content={item.content}
+              tags={item.tags || []} // ✅ Fix: Ensure tags is always an array
+              isPinned={item.isPinned}
               onEdit={() => console.log("Edit clicked")}
               onPinNote={() => console.log("Pin clicked")}
               onDelete={() => console.log("Delete clicked")}
@@ -81,7 +128,7 @@ const Home = () => {
               backgroundColor: "rgba(0,0,0,0.2)",
             },
             content: {
-              padding: "20px", // Add padding for modal content
+              padding: "20px",
             },
           }}
         >
@@ -91,6 +138,7 @@ const Home = () => {
             onclose={() => {
               setOpenAddEditModal({ isshown: false, type: "add", data: null });
             }}
+            getAllNotes={getAllNotes}
           />
         </Modal>
       </div>

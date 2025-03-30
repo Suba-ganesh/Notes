@@ -1,4 +1,5 @@
 import { MdOutlinePushPin, MdCreate, MdDelete } from "react-icons/md";
+import moment from "moment";
 
 const NoteCard = ({
   title,
@@ -15,7 +16,7 @@ const NoteCard = ({
       <div className="flex justify-content-between items-center mb-2">
         <div>
           <h6 className="text-lg font-bold">{title}</h6>
-          <span className="text-sm text-gray-500">{date}</span>
+          <span className="text-sm text-gray-500">{moment(date).format("YYYY-MM-DD HH:mm:ss")}</span>
         </div>
         
         {/* Pin Icon */}
@@ -32,11 +33,7 @@ const NoteCard = ({
       <div className="flex justify-content-between items-center mt-3">
         {/* Tags */}
         <div className="flex gap-1">
-          {tags?.map((tag, index) => (
-            <span key={index} className="px-2 py-1 text-xs bg-gray-200 rounded-md">
-              {tag}
-            </span>
-          ))}
+          {tags.map((item)=> `#${item}`)}
         </div>
 
         {/* Edit & Delete Icons */}

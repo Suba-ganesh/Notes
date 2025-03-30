@@ -1,10 +1,11 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../../components/Navbar/Navbar";
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
 import { useState } from "react";
 import emailvalidation from "../../utilities/helper";
 import PasswordInput from "../../components/Password/PasswordInput";
+import axiosInstance from "../../utilities/axios";
 
 
 const Login = () => {
@@ -12,8 +13,9 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
+  const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
 
     if (!emailvalidation(email)) {
@@ -25,6 +27,27 @@ const Login = () => {
     if (!password) {
       setError("Please enter a valid password.");
       return;
+    }
+
+    setError("");
+
+    try {
+      const response = await axiosInstance.post("/login", {
+        email: email,
+        password: password,
+      });
+
+      if (response.data && response.data.accessToken) {
+        localStorage.setItem( "token", response.data.accessToken)
+        navigate('/dashboard')
+      }
+    } catch (error) {
+      if (error.response && error.response.data && error.response.data.message) {
+        setError (error.response.data.message);
+      }
+      else {
+        setError ("An unezxpected error Occured")
+      }
     }
   };
 
